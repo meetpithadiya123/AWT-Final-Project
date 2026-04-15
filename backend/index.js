@@ -40,6 +40,10 @@ app.listen(PORT, () => {
     console.log(`🚀 Server Running on Port ${PORT}`);
 });
 
+app.get("/", (req, res) => {
+    res.send("AWT Backend API is Running!");
+});
+
 
 
 function isAdmin(req, res, next) {
