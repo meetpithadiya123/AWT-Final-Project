@@ -32,12 +32,14 @@ app.use(cors({
     },
     credentials: true
 }));
-app.options("*", cors({ origin: (origin, callback) => {
+
+app.options("*splat", cors({ origin: (origin, callback) => {
     if (!origin || allowedOrigins.includes(origin)) {
         return callback(null, true);
     }
     callback(new Error("Not allowed by CORS"));
 }, credentials: true }));
+
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
 
