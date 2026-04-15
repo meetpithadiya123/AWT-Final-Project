@@ -28,6 +28,7 @@ const ViewComplaints = () => {
             <table>
                 <thead>
                     <tr>
+                        <th className="no-column">NO.</th>
                         <th>Title</th>
                         <th>Description</th>
                         <th>Priority</th>
@@ -37,14 +38,15 @@ const ViewComplaints = () => {
                     </tr>
                 </thead>
                 <tbody>
-                    {complaints.length > 0 ? complaints.map(c => (
+                    {complaints.length > 0 ? complaints.map((c, index) => (
                         <tr key={c._id}>
+                            <td className="no-column">{(page - 1) * 4 + index + 1}</td>
                             <td>{c.title}</td>
                             <td>{c.description}</td>
                             <td>{c.priority}</td>
                             <td>{new Date(c.date).toLocaleDateString()}</td>
                             <td>
-                                <span style={{ 
+                                <span style={{
                                     padding: '5px 10px', borderRadius: '5px', fontSize: '12px',
                                     background: c.status === 'Solved' ? '#2ecc71' : c.status === 'Processing' ? '#f39c12' : '#e74c3c',
                                     color: 'white'
@@ -56,7 +58,7 @@ const ViewComplaints = () => {
                         </tr>
                     )) : (
                         <tr>
-                            <td colSpan="6" style={{ textAlign: 'center' }}>No complaints found</td>
+                            <td colSpan="7" style={{ textAlign: 'center' }}>No complaints found</td>
                         </tr>
                     )}
                 </tbody>
@@ -64,11 +66,11 @@ const ViewComplaints = () => {
 
             <div style={{ marginTop: '20px', display: 'flex', justifyContent: 'center', gap: '5px' }}>
                 {Array.from({ length: totalPages }, (_, i) => i + 1).map(p => (
-                    <button 
-                        key={p} 
+                    <button
+                        key={p}
                         onClick={() => setPage(p)}
-                        style={{ 
-                            padding: '8px 15px', 
+                        style={{
+                            padding: '8px 15px',
                             background: page === p ? '#2c3e50' : 'white',
                             color: page === p ? 'white' : '#2c3e50',
                             border: '1px solid #ddd',

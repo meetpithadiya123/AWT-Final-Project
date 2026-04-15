@@ -32,6 +32,7 @@ const HODViewComplaints = () => {
             <table>
                 <thead>
                     <tr>
+                        <th className="no-column">NO.</th>
                         <th>User</th>
                         <th>Title</th>
                         <th>Priority</th>
@@ -40,8 +41,9 @@ const HODViewComplaints = () => {
                     </tr>
                 </thead>
                 <tbody>
-                    {complaints.map(c => (
+                    {complaints.map((c, index) => (
                         <tr key={c._id}>
+                            <td className="no-column">{index + 1}</td>
                             <td>{c.enrollment}</td>
                             <td>{c.title}</td>
                             <td>{c.priority}</td>
@@ -71,8 +73,15 @@ const HODViewComplaints = () => {
             {selected && (
                 <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.5)', display: 'flex', justifyContent: 'center', alignItems: 'center', zIndex: 1000 }}>
                     <div className="form-box" style={{ width: '500px' }}>
-                        <h3>Process Complaint</h3>
-                        <p style={{ margin: '10px 0', color: '#666' }}>From: {selected.enrollment}</p>
+                        <div style={{ marginBottom: '20px', paddingBottom: '15px', borderBottom: '1px solid #eee' }}>
+                            <h3 style={{ margin: '0 0 10px 0' }}>Process Complaint</h3>
+                            <div style={{ fontSize: '14px', color: '#555' }}>
+                                <p><strong>User:</strong> {selected.enrollment}</p>
+                                <p><strong>Title:</strong> {selected.title}</p>
+                                <p><strong>Description:</strong> {selected.description}</p>
+                                <p><strong>Priority:</strong> <span style={{ color: selected.priority === 'High' ? '#e74c3c' : selected.priority === 'Medium' ? '#f39c12' : '#3498db' }}>{selected.priority}</span></p>
+                            </div>
+                        </div>
                         <form onSubmit={handleUpdate}>
                             <div className="form-group">
                                 <label>Status</label>

@@ -66,7 +66,7 @@ function isUser(req, res, next) {
 /* ==========================
    DATABASE CONNECTION
 ========================== */
-mongoose.connect(process.env.MONGODB_URI || "mongodb://127.0.0.1:27017/complaint_system")
+mongoose.connect(process.env.MONGODB_URI)
     .then(async () => {
         console.log("✅ Database Connected");
         await createDefaultUsers();
@@ -350,4 +350,4 @@ app.post("/api/admin/add-user", isAdmin, async (req, res) => {
         role
     });
     res.status(201).json({ message: "User created successfully", user: newUser });
-});
+});
