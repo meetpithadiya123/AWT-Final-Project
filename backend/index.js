@@ -351,3 +351,5 @@ app.post("/api/admin/add-user", isAdmin, async (req, res) => {
     });
     res.status(201).json({ message: "User created successfully", user: newUser });
 });
+
+export default app;
