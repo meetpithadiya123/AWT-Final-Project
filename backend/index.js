@@ -15,20 +15,22 @@ const app = express();
    MIDDLEWARE
 ========================== */
 app.use(cors({
-    origin: "https://awt-final-project-frontend.vercel.app",
+    origin: ["https://meetawtproject.vercel.app", "https://awt-final-project-frontend.vercel.app"],
     credentials: true
 }));
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
 
+app.set("trust proxy", 1);
 app.use(session({
     secret: process.env.SESSION_SECRET || "complaint_secret_key",
     resave: false,
     saveUninitialized: false,
     cookie: {
-        secure: false, // Set to true if using HTTPS
+        secure: true, 
+        sameSite: "none",
         httpOnly: true,
-        maxAge: 24 * 60 * 60 * 1000 // 24 hours
+        maxAge: 24 * 60 * 60 * 1000
     }
 }));
 
