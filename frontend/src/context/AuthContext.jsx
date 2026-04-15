@@ -3,8 +3,9 @@ import axios from "axios";
 
 const AuthContext = createContext();
 
+const apiBaseUrl = import.meta.env.VITE_API_URL || (import.meta.env.DEV ? "http://localhost:8000" : "https://awt-final-project-backend.vercel.app");
 axios.defaults.withCredentials = true;
-axios.defaults.baseURL = "https://awt-final-project-backend.vercel.app";
+axios.defaults.baseURL = apiBaseUrl;
 
 export const AuthProvider = ({ children }) => {
     const [user, setUser] = useState(null);

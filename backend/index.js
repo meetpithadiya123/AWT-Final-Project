@@ -14,10 +14,30 @@ const app = express();
 /* ==========================
    MIDDLEWARE
 ========================== */
+const isProduction = process.env.NODE_ENV === "production";
+const allowedOrigins = [
+    process.env.FRONTEND_URL,
+    "https://meetawtproject.vercel.app",
+    "https://awt-final-project-frontend.vercel.app",
+    "http://localhost:5173",
+    "http://127.0.0.1:5173"
+].filter(Boolean);
+
 app.use(cors({
-    origin: ["https://meetawtproject.vercel.app", "https://awt-final-project-frontend.vercel.app"],
+    origin: (origin, callback) => {
+        if (!origin || allowedOrigins.includes(origin)) {
+            return callback(null, true);
+        }
+        callback(new Error("Not allowed by CORS"));
+    },
     credentials: true
 }));
+app.options("*", cors({ origin: (origin, callback) => {
+    if (!origin || allowedOrigins.includes(origin)) {
+        return callback(null, true);
+    }
+    callback(new Error("Not allowed by CORS"));
+}, credentials: true }));
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
 
@@ -27,8 +47,8 @@ app.use(session({
     resave: false,
     saveUninitialized: false,
     cookie: {
-        secure: true, 
-        sameSite: "none",
+        secure: isProduction,
+        sameSite: isProduction ? "none" : "lax",
         httpOnly: true,
         maxAge: 24 * 60 * 60 * 1000
     }
@@ -72,12 +92,19 @@ function isUser(req, res, next) {
 /* ==========================
    DATABASE CONNECTION
 ========================== */
-mongoose.connect(process.env.MONGODB_URI)
+const mongoUri = process.env.MONGODB_URI || "mongodb://127.0.0.1:27017/complaints";
+if (!process.env.MONGODB_URI) {
+    console.warn("MONGODB_URI is not set. Falling back to local MongoDB URI.");
+}
+
+mongoose.connect(mongoUri)
     .then(async () => {
         console.log("✅ Database Connected");
         await createDefaultUsers();
     })
-    .catch(err => console.log(err));
+    .catch(err => {
+        console.error("MongoDB connection failed:", err);
+    });
 
 /* ==========================
    CREATE DEFAULT ADMIN & HOD
@@ -129,36 +156,46 @@ app.get("/api/auth/me", async (req, res) => {
 });
 
 app.post("/api/login", async (req, res) => {
-    const { enrollment, password } = req.body;
-    let user = await User.findOne({ enrollment });
+    try {
+        const { enrollment, password } = req.body;
 
-    if (!user) {
-        const hashedPassword = await bcrypt.hash(password, 10);
-        user = await User.create({
-            enrollment,
-            password: hashedPassword,
-            role: "user"
-        });
-        console.log("New user created:", enrollment);
-    }
-
-    const isMatch = await bcrypt.compare(password, user.password);
-    if (!isMatch) {
-        return res.status(401).json({ message: "Invalid Enrollment or Password" });
-    }
-
-    req.session.userId = user._id;
-    req.session.role = user.role;
-    req.session.enrollment = user.enrollment;
-
-    res.json({
-        message: "Login successful",
-        user: {
-            id: user._id,
-            role: user.role,
-            enrollment: user.enrollment
+        if (!enrollment || !password) {
+            return res.status(400).json({ message: "Enrollment and password are required." });
         }
-    });
+
+        let user = await User.findOne({ enrollment });
+
+        if (!user) {
+            const hashedPassword = await bcrypt.hash(password, 10);
+            user = await User.create({
+                enrollment,
+                password: hashedPassword,
+                role: "user"
+            });
+            console.log("New user created:", enrollment);
+        }
+
+        const isMatch = await bcrypt.compare(password, user.password);
+        if (!isMatch) {
+            return res.status(401).json({ message: "Invalid Enrollment or Password" });
+        }
+
+        req.session.userId = user._id;
+        req.session.role = user.role;
+        req.session.enrollment = user.enrollment;
+
+        res.json({
+            message: "Login successful",
+            user: {
+                id: user._id,
+                role: user.role,
+                enrollment: user.enrollment
+            }
+        });
+    } catch (error) {
+        console.error("Login error:", error);
+        res.status(500).json({ message: "Login failed. Please try again later." });
+    }
 });
 
 /* ==========================
@@ -252,6 +289,14 @@ app.get("/api/admin/dashboard", isAdmin, async (req, res) => {
         pendingComplaints,
         recentComplaints
     });
+});
+
+app.use((err, req, res, next) => {
+    console.error("Unhandled server error:", err);
+    if (res.headersSent) {
+        return next(err);
+    }
+    res.status(500).json({ message: err.message || "Internal server error" });
 });
 
 
