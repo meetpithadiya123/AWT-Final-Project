@@ -4,7 +4,7 @@ import axios from "axios";
 const AuthContext = createContext();
 
 axios.defaults.withCredentials = true;
-axios.defaults.baseURL = "http://localhost:8000";
+axios.defaults.baseURL = "https://awt-final-project-backend.vercel.app";
 
 export const AuthProvider = ({ children }) => {
     const [user, setUser] = useState(null);
