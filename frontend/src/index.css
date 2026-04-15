@@ -252,3 +252,44 @@ table th {
     font-weight: 700;
     color: #95a5a6;
 }
+
+.loading-overlay {
+    position: fixed;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(255, 255, 255, 0.85);
+    z-index: 9999;
+    backdrop-filter: blur(4px);
+}
+
+.loading-box {
+    background: #ffffff;
+    border-radius: 18px;
+    padding: 30px 35px;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.12);
+    text-align: center;
+    min-width: 260px;
+}
+
+.loading-spinner {
+    width: 56px;
+    height: 56px;
+    margin: 0 auto 18px;
+    border: 6px solid rgba(44, 62, 80, 0.15);
+    border-top-color: #2c3e50;
+    border-radius: 50%;
+    animation: pulse-spin 0.9s linear infinite;
+}
+
+.loading-box p {
+    margin: 0;
+    font-size: 16px;
+    color: #2c3e50;
+    font-weight: 600;
+}
+
+@keyframes pulse-spin {
+    to { transform: rotate(360deg); }
+}

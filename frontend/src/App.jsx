@@ -1,6 +1,7 @@
 import React from "react";
 import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
 import { AuthProvider, useAuth } from "./context/AuthContext";
+import LoadingOverlay from "./components/LoadingOverlay";
 import LoginPage from "./pages/LoginPage";
 import UserDashboard from "./pages/UserDashboard";
 import MakeComplaint from "./pages/MakeComplaint";
@@ -14,10 +15,16 @@ import HODViewComplaints from "./pages/HODViewComplaints";
 
 const ProtectedRoute = ({ children, role }) => {
     const { user, loading } = useAuth();
-    if (loading) return null;
+    if (loading) return <LoadingOverlay text="Checking authentication..." />;
     if (!user) return <Navigate to="/" />;
     if (role && user.role !== role) return <Navigate to="/" />;
     return children;
+};
+
+const LoginWrapper = () => {
+    const { loading } = useAuth();
+    if (loading) return <LoadingOverlay text="Checking authentication..." />;
+    return <LoginPage />;
 };
 
 function App() {
@@ -25,7 +32,7 @@ function App() {
         <AuthProvider>
             <Router>
                 <Routes>
-                    <Route path="/" element={<LoginPage />} />
+                    <Route path="/" element={<LoginWrapper />} />
                     
                     {/* User Routes */}
                     <Route path="/user/:enrollment" element={<ProtectedRoute role="user"><UserDashboard /></ProtectedRoute>} />

@@ -41,6 +41,55 @@ app.options("*", cors({ origin: (origin, callback) => {
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
 
+const mongoUri = process.env.MONGODB_URI || "mongodb://127.0.0.1:27017/complaints";
+if (isProduction && !process.env.MONGODB_URI) {
+    console.error("MONGODB_URI is required in production.");
+}
+
+const cached = global.mongoose || (global.mongoose = { conn: null, promise: null });
+
+const connectDatabase = async () => {
+    if (cached.conn) {
+        return cached.conn;
+    }
+
+    if (!cached.promise) {
+        if (!mongoUri) {
+            throw new Error("MongoDB URI is not configured.");
+        }
+        cached.promise = mongoose.connect(mongoUri).then(async (mongoose) => {
+            cached.conn = mongoose;
+            await createDefaultUsers();
+            return cached.conn;
+        });
+    }
+
+    return cached.promise;
+};
+
+const initDatabase = async () => {
+    await connectDatabase();
+    console.log("✅ Database Connected");
+    await createDefaultUsers();
+};
+
+if (!isProduction) {
+    initDatabase().catch(err => console.error("MongoDB initialization failed:", err));
+}
+
+app.use(async (req, res, next) => {
+    if (!req.path.startsWith("/api")) {
+        return next();
+    }
+
+    try {
+        await connectDatabase();
+        next();
+    } catch (err) {
+        next(err);
+    }
+});
+
 app.set("trust proxy", 1);
 app.use(session({
     secret: process.env.SESSION_SECRET || "complaint_secret_key",
@@ -58,9 +107,11 @@ app.use(session({
    SERVER
 ========================== */
 const PORT = process.env.PORT || 8000;
-app.listen(PORT, () => {
-    console.log(`🚀 Server Running on Port ${PORT}`);
-});
+if (!isProduction) {
+    app.listen(PORT, () => {
+        console.log(`🚀 Server Running on Port ${PORT}`);
+    });
+}
 
 app.get("/", (req, res) => {
     res.send("AWT Backend API is Running!");
@@ -90,23 +141,7 @@ function isUser(req, res, next) {
 }
 
 /* ==========================
-   DATABASE CONNECTION
-========================== */
-const mongoUri = process.env.MONGODB_URI || "mongodb://127.0.0.1:27017/complaints";
-if (!process.env.MONGODB_URI) {
-    console.warn("MONGODB_URI is not set. Falling back to local MongoDB URI.");
-}
 
-mongoose.connect(mongoUri)
-    .then(async () => {
-        console.log("✅ Database Connected");
-        await createDefaultUsers();
-    })
-    .catch(err => {
-        console.error("MongoDB connection failed:", err);
-    });
-
-/* ==========================
    CREATE DEFAULT ADMIN & HOD
 ========================== */
 const createDefaultUsers = async () => {

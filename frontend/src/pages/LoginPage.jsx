@@ -6,11 +6,14 @@ const LoginPage = () => {
     const [enrollment, setEnrollment] = useState("");
     const [password, setPassword] = useState("");
     const [error, setError] = useState("");
+    const [submitting, setSubmitting] = useState(false);
     const { login } = useAuth();
     const navigate = useNavigate();
 
     const handleSubmit = async (e) => {
         e.preventDefault();
+        setSubmitting(true);
+        setError("");
         try {
             const user = await login(enrollment, password);
             if (user.role === "admin") navigate("/admin");
@@ -18,6 +21,8 @@ const LoginPage = () => {
             else navigate(`/user/${user.enrollment}`);
         } catch (err) {
             setError(err.response?.data?.message || "Invalid Enrollment or Password");
+        } finally {
+            setSubmitting(false);
         }
     };
 
@@ -49,11 +54,26 @@ const LoginPage = () => {
                             required 
                         />
                     </div>
-                    <button type="submit" className="login-btn" style={{ 
-                        width: '100%', padding: '12px', background: '#2c3e50', border: 'none', 
-                        color: 'white', fontSize: '15px', borderRadius: '8px', cursor: 'pointer' 
-                    }}>
-                        <i className="fas fa-sign-in-alt"></i> Login
+                    <button
+                        type="submit"
+                        className="login-btn"
+                        disabled={submitting}
+                        style={{
+                            width: '100%',
+                            padding: '12px',
+                            background: submitting ? '#4a5d72' : '#2c3e50',
+                            border: 'none',
+                            color: 'white',
+                            fontSize: '15px',
+                            borderRadius: '8px',
+                            cursor: submitting ? 'not-allowed' : 'pointer',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center'
+                        }}
+                    >
+                        <i className={submitting ? "fas fa-spinner fa-spin" : "fas fa-sign-in-alt"} style={{ marginRight: submitting ? '10px' : '8px' }}></i>
+                        {submitting ? 'Connecting...' : 'Login'}
                     </button>
                 </form>
                 <div style={{ textAlign: 'center', marginTop: '15px', fontSize: '13px', color: 'gray' }}>
